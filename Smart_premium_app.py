@@ -11,7 +11,7 @@ os.environ["MLFLOW_TRACKING_USERNAME"] = st.secrets["DAGSHUB_USER"]
 os.environ["MLFLOW_TRACKING_PASSWORD"] = st.secrets["DAGSHUB_TOKEN"]
 
 # Set DAGsHub tracking URI
-mlflow.set_tracking_uri("https://dagshub.com/sathyakrs/ds_smart_premium.mlflow")
+mlflow.set_tracking_uri("https://dagshub.com/zsathya103/Ds_Smart_premium.mlflow")
 
 #load production model
 model = mlflow.pyfunc.load_model("models:/SmartPremium_XGBoost/Production")
