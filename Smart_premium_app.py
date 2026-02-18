@@ -60,6 +60,8 @@ if st.button("Predict Premium"):
         "Exercise Frequency Encoded": exercise_encoded
     }])
 
+    input_df = input_df[model.feature_names_in_]
+
     prediction = model.predict(input_df)[0]
 
     st.success(f"Predicted Insurance Premium: ₹ {prediction:,.2f}")
