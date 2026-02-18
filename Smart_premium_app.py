@@ -60,7 +60,15 @@ if st.button("Predict Premium"):
         "Exercise Frequency Encoded": exercise_encoded
     }])
 
-    input_df = input_df[model.feature_names_in_]
+    EXPECTED_COLUMNS = [
+    "Age",
+    "Health Score",
+    "Previous Claims",
+    "Credit Score",
+    "Exercise Frequency Encoded"
+    ]
+
+    input_df = input_df[EXPECTED_COLUMNS]
 
     prediction = model.predict(input_df)[0]
 
