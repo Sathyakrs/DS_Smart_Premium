@@ -3,48 +3,56 @@ import mlflow
 import streamlit as st
 import pandas as pd
 import numpy as np
+import joblib
 
-
-# STREAMLIT PAGE CONFIG
-
+# -----------------------------
+# STREAMLIT CONFIG
+# -----------------------------
 st.set_page_config(page_title="Smart Premium Predictor", page_icon="🛡️")
 
-
-# SET DAGSHUB CREDENTIALS
-
+# -----------------------------
+# DAGSHUB AUTH
+# -----------------------------
 os.environ["MLFLOW_TRACKING_USERNAME"] = st.secrets["DAGSHUB_USER"]
 os.environ["MLFLOW_TRACKING_PASSWORD"] = st.secrets["DAGSHUB_TOKEN"]
 
-
-# SET TRACKING URI
-
 mlflow.set_tracking_uri("https://dagshub.com/zsathya103/Ds_Smart_premium.mlflow")
 
-
-# LOAD PRODUCTION MODEL
-
+# -----------------------------
+# LOAD MODEL
+# -----------------------------
 @st.cache_resource
 def load_model():
-    return mlflow.pyfunc.load_model(
-        "models:/SmartPremium_XGBoost/Production"
-    )
+    return mlflow.pyfunc.load_model("models:/SmartPremium_XGBoost/Production")
 
 model = load_model()
 
-# STREAMLIT UI
+# -----------------------------
+# LOAD SCALER
+# -----------------------------
+scaler = joblib.load("scaler.pkl")
+
+numerical_cols = [
+    "Age", "Annual Income", "Health Score",
+    "Previous Claims", "Vehicle Age",
+    "Credit Score", "Insurance Duration",
+    "Number of Dependents"
+]
+
+# -----------------------------
+# UI
+# -----------------------------
 st.title("🛡️ Smart Insurance Premium Prediction")
 st.write("Enter customer details to estimate insurance premium.")
 
-# INPUTS
-
-age = st.number_input("Age", min_value=18, max_value=100, value=30)
-income = st.number_input("Annual Income", min_value=0.0, value=500000.0)
-dependents = st.number_input("Number of Dependents", min_value=0, max_value=10, value=1)
+age = st.number_input("Age", 18, 100, 30)
+income = st.number_input("Annual Income", 0.0, 500000.0)
+dependents = st.number_input("Number of Dependents", 0, 10, 1)
 health_score = st.slider("Health Score", 1, 100, 70)
-previous_claims = st.number_input("Previous Claims", min_value=0, max_value=20, value=0)
-vehicle_age = st.number_input("Vehicle Age", min_value=0, max_value=30, value=5)
+previous_claims = st.number_input("Previous Claims", 0, 20, 0)
+vehicle_age = st.number_input("Vehicle Age", 0, 30, 5)
 credit_score = st.slider("Credit Score", 300, 900, 650)
-insurance_duration = st.number_input("Insurance Duration (Years)", min_value=1, max_value=30, value=5)
+insurance_duration = st.number_input("Insurance Duration", 1, 30, 5)
 
 gender = st.selectbox("Gender", ["Female", "Male"])
 marital = st.selectbox("Marital Status", ["Single", "Married"])
@@ -52,12 +60,13 @@ policy = st.selectbox("Policy Type", ["Basic", "Comprehensive", "Premium"])
 location = st.selectbox("Location", ["Rural", "Suburban", "Urban"])
 property_type = st.selectbox("Property Type", ["Apartment", "Condo", "House"])
 
-education_encoded = st.number_input("Education Level Encoded", min_value=0, max_value=5, value=1)
-exercise_encoded = st.number_input("Exercise Frequency Encoded", min_value=0, max_value=5, value=2)
-smoking_encoded = st.number_input("Smoking Status Encoded", min_value=0, max_value=1, value=0)
+education_encoded = st.number_input("Education Level Encoded", 1, 4, 1)
+exercise_encoded = st.number_input("Exercise Frequency Encoded", 1, 4, 2)
+smoking_encoded = st.number_input("Smoking Status Encoded", 0, 1, 0)
 
-# PREDICTION BUTTON 
-
+# -----------------------------
+# PREDICTION
+# -----------------------------
 if st.button("Predict Premium"):
 
     input_data = {
@@ -100,6 +109,13 @@ if st.button("Predict Premium"):
     input_df = pd.DataFrame([input_data])
     input_df = input_df.reindex(columns=expected_columns, fill_value=0)
 
-    prediction = model.predict(input_df)[0]
+    # SCALE NUMERICAL FEATURES
+    input_df[numerical_cols] = scaler.transform(input_df[numerical_cols])
+
+    # PREDICT (log scale)
+    prediction_log = model.predict(input_df)[0]
+
+    # Convert back to original scale
+    prediction = np.expm1(prediction_log)
 
     st.success(f"Predicted Premium: ₹ {prediction:,.2f}")
