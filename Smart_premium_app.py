@@ -34,7 +34,7 @@ previous_claims = st.number_input("Previous Claims", min_value=0, value=0)
 credit_score = st.number_input("Credit Score", min_value=300, max_value=900, value=650)
 
 exercise_freq = st.selectbox(
-    "Exercise Frequency",
+    "Exercise Frequency Encoded",
     ["Rarely", "Monthly", "Weekly", "Daily"]
 )
 
@@ -46,7 +46,7 @@ exercise_map = {
     "Daily": 4
 }
 
-exercise_encoded = exercise_map[exercise_freq]
+exercise_encoded_frequency = exercise_map[exercise_freq]
 
 #premium amount prediction 
 if st.button("Predict Premium"):
@@ -57,7 +57,7 @@ if st.button("Predict Premium"):
         "Health Score": health_score,
         "Previous Claims": previous_claims,
         "Credit Score": credit_score,
-        "Exercise Frequency Encoded": exercise_encoded
+        "Exercise Frequency Encoded": exercise_encoded_frequency
     }])
 
     EXPECTED_COLUMNS = [
