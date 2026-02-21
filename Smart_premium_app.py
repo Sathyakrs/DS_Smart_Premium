@@ -100,7 +100,6 @@ if st.button("Predict Premium"):
     input_df = pd.DataFrame([input_data])
     input_df = input_df.reindex(columns=expected_columns, fill_value=0)
 
-    prediction_log = model.predict(input_df)[0]
-    prediction = np.expm1(prediction_log)
+    prediction = model.predict(input_df)[0]
 
     st.success(f"Predicted Premium: ₹ {prediction:,.2f}")
